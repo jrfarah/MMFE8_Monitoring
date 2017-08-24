@@ -263,6 +263,7 @@ def graph_data_total_set():
             try:
                 y, x = line.split(',')
                 ys.append(float(y))
+                # working on this part
                 xs.append((lines.index(line)/4.0)/86400.0)
                 print float(y), float(time_since_beginning)
             except:
