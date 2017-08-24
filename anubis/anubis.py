@@ -308,6 +308,9 @@ def change_check():
         print 'Something is REALLY wrong. Quitting.'
         sys.exit()
 
+def view_email_list():
+    tkmb.showinfo("Emails are being sent to these emails", emails)
+
 
 def check_args():
     '''check the function arguments provided when the software was run'''
@@ -328,22 +331,41 @@ def check_args():
 
 
 # GUI button and entry definitions, add to here if you want to implement functions as buttons
+# database dataset live view entry controls
 voltage_db_view = Text(main, bg = "white", fg = "black", insertbackground = "white",tabs = ("1c"))
 voltage_db_view.grid(row = 0, column = 1, rowspan=8)
+
+# button to generate new runs, creates a newRun object
 new_run_button = Button(main, text="Start New Run", command=new_run_function)
 new_run_button.grid(row=0,column=0)
+
+# button to generate empty dataset, function is within newRun object
 generate_empty_database_file = Button(main, text="Generate new database", command=generate_new_empty_database)
 generate_empty_database_file.grid(row=1, column=0)
+
+# button to display all current run information
 get_current_run_info_button = Button(main, text="Get current run info", command=get_current_run_info)
 get_current_run_info_button.grid(row=2, column=0)
-graph_button = Button(main, text="Change threshold", command=change_threshold)
-graph_button.grid(row=3, column=0)
+
+# button to change the threshold
+ch_thresh_button = Button(main, text="Change threshold", command=change_threshold)
+ch_thresh_button.grid(row=3, column=0)
+
+# button to initalize realtime database view (graph)
 graph_button_real_time = Button(main, text="Graph voltage, real time", command=graph_data_real_time)
 graph_button_real_time.grid(row=4, column=0)
+
+# button to initialize static, full database view (graph)
 graph_button_total = Button(main, text="Graph all data", command=graph_data_total_set)
 graph_button_total.grid(row=5, column=0)
+
+# toggles sending of alerts to everyone on the email list
 monitoring_button = Button(main, text="START/STOP MONITORING", command=change_check)
-monitoring_button.grid(row=6, column=0, rowspan=2)
+monitoring_button.grid(row=6, column=0, rowspan=1)
+
+# see who's on the email list
+elist_button = Button(main, text="Who are emails being sent to?", command=view_email_list)
+elist_button.grid(row=7, column=0)
 
 
 # check for the arguments before anything gets going
