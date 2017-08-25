@@ -48,6 +48,9 @@ except:
 # for defaults, grab the most recently used database file
 with open('db_loc.txt') as f:
     database_file = f.readline()
+    if os.path.isfile(database_file):
+        print 'Previous file found, creating backup'
+        os.system('mv {0} {0}.bak'.format(database_file))
 
 # a valve variable is used for temporary value storage while 
 # applying a new value to a previously created class
