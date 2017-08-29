@@ -1,14 +1,14 @@
-db_file_loc = 'C:\Users\Joseph Farah\Documents\lppc_internship_files\lvms\db_loc.txt';
+db_file_loc = 'C:\Users\Joseph Farah\Documents\lppc_internship_files\lvms\anubis\db_loc.txt';
 db_file_ID = fopen(db_file_loc, 'r');
 file_name = fgetl(db_file_ID);
 display(file_name);
 
 
-ip = '128.103.100.9';
+ip = '128.103.100.25';
 connected = 0;
 connectAttempt = 1;
 maxAttempt = 10;
-fileID = fopen(strcat('C:\Users\Joseph Farah\Documents\lppc_internship_files\lvms\',file_name),'wt');
+fileID = fopen(strcat('C:\Users\Joseph Farah\Documents\lppc_internship_files\lvms\anubis\',file_name),'wt');
 fmt = '%s\n';
 
 lvms_obj = instrfind('Type', 'tcpip', 'RemoteHost', ip, 'RemotePort', 3490, 'Tag', '');

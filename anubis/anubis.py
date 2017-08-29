@@ -138,7 +138,6 @@ def tail(f, n):
     except:
         limit = LIMIT
 
-    print limit
     if check_limit == 1:
         for line in lines:
             y, x = line.split(',')
@@ -314,6 +313,13 @@ def change_check():
 def view_email_list():
     tkmb.showinfo("Emails are being sent to these emails", emails)
 
+def ping():
+    element_input(main, "Please input the number of pings.")
+    num_ping = valve
+    element_input(main, "Please input the IP you want to ping.")
+    ip_ping = valve
+    response = subprocess.check_output("ping -c {0} {1}".format(num_ping, ip_ping), shell=True)
+    tkmb.showinfo("Result", response)
 
 def check_args():
     '''check the function arguments provided when the software was run'''
@@ -336,7 +342,7 @@ def check_args():
 # GUI button and entry definitions, add to here if you want to implement functions as buttons
 # database dataset live view entry controls
 voltage_db_view = Text(main, bg = "white", fg = "black", insertbackground = "white",tabs = ("1c"))
-voltage_db_view.grid(row = 0, column = 1, rowspan=8)
+voltage_db_view.grid(row = 0, column = 1, rowspan=9)
 
 # button to generate new runs, creates a newRun object
 new_run_button = Button(main, text="Start New Run", command=new_run_function)
@@ -366,9 +372,14 @@ graph_button_total.grid(row=5, column=0)
 monitoring_button = Button(main, text="START/STOP MONITORING", command=change_check)
 monitoring_button.grid(row=6, column=0, rowspan=1)
 
+# ping within the software
+ping_button = Button(main, text="Ping IP", command=ping)
+ping_button.grid(row=7, column=0)
+
 # see who's on the email list
 elist_button = Button(main, text="Who are emails being sent to?", command=view_email_list)
-elist_button.grid(row=7, column=0)
+elist_button.grid(row=8, column=0)
+
 
 
 # check for the arguments before anything gets going
