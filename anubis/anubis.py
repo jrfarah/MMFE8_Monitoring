@@ -4,7 +4,7 @@
 # Created by Joseph Farah
 #
 # Written on: [Thursday, August 17th, 2017]
-# Last updated: [Thursday, August 24th, 2017] by [Joseph Farah]
+# Last updated: [Tuesday, August 29th, 2017] by [Joseph Farah]
 # Requires several files to run:
 #   * db_loc.txt: contains a single line pointing both ANUBIS and the Matlab script 
 #                 to the correct database  
