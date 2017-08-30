@@ -67,7 +67,7 @@ show_lower_bound = 0
 # default limit, can be changed either with command line
 # args or by using the GUI
 LIMIT = 1.5e-4
-total_refresh = 3e5
+total_refresh = int(3e5)
 
 # email list, needs to be global
 emails = []
@@ -82,6 +82,7 @@ parser.add_argument("--lower", help="lower threshold limit")
 parser.add_argument("--emails", default="", help="list of emails, separated by commas. example: email@cern.ch,email.cern.ch", required=True)
 parser.add_argument("--user", default="", help="username for alert system", required=True)
 parser.add_argument("--pass", default="",help="password for alert system", required=True )
+parser.add_argument("--totref", default=total_refresh, help="how often the realtime graph of the total dataset refreshes")
 
 # class to allow user input for any variable
 class element_input(object):
@@ -99,7 +100,6 @@ class element_input(object):
         global valve
         valve = self.e.get()
         self.top.destroy()
-tim
 # create a new run, can assign current date, threshold, and database file name/run_num
 class newRun(object):
     def __init__(self, date, limit=1.5e-3):
