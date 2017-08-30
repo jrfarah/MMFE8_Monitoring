@@ -61,10 +61,13 @@ valve = ""
 check_start = 1
 start_time = 0
 check_limit = 0
+show_upper_bound = 0
+show_lower_bound = 0
 
 # default limit, can be changed either with command line
 # args or by using the GUI
 LIMIT = 1.5e-4
+total_refresh = 3e5
 
 # email list, needs to be global
 emails = []
@@ -74,7 +77,8 @@ passwd = ""
 # command line argument stuff
 parser = argparse.ArgumentParser(usage=__doc__, formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 parser.add_argument("--rnum", default="notrun", help="run number")
-parser.add_argument("--threshold", default=LIMIT, help="threshold value")
+parser.add_argument("--threshold", help="threshold value")
+parser.add_argument("--lower", help="lower threshold limit")
 parser.add_argument("--emails", default="", help="list of emails, separated by commas. example: email@cern.ch,email.cern.ch", required=True)
 parser.add_argument("--user", default="", help="username for alert system", required=True)
 parser.add_argument("--pass", default="",help="password for alert system", required=True )
@@ -95,7 +99,7 @@ class element_input(object):
         global valve
         valve = self.e.get()
         self.top.destroy()
-
+tim
 # create a new run, can assign current date, threshold, and database file name/run_num
 class newRun(object):
     def __init__(self, date, limit=1.5e-3):
@@ -103,6 +107,7 @@ class newRun(object):
         self.date = date
         self.db_file_name = ""
         self.limit = limit
+        self.lower_threshold = limit/2
 
     def generate_new_file(self):
         global database_file
@@ -181,6 +186,8 @@ def get_current_run_info():
     print current_run.date
     print current_run.run_number
     print current_run.db_file_name
+    print current_run.limit
+    print current_run.lower_threshold
     tkmb.showinfo("Current object info", "{0}\n{1}\n{2}\n".format(current_run.date, current_run.run_number, current_run.db_file_name))
 
 def generate_new_empty_database():
@@ -203,8 +210,10 @@ def animate(i, ax1):
     MAX_LENGTH = 50
     try:
         LIMIT = current_run.limit
+        l_bound = current_run.lower_threshold
     except:
         LIMIT = 1.5e-3
+        l_bound = LIMIT/2
     try:
         with open(current_run.db_file_name,'r') as gd:
             graph_data = gd.read()
@@ -220,6 +229,7 @@ def animate(i, ax1):
     ys = []
     # the "zs" is the function that graphs the threshold
     zs = []
+    ls = []
     time_since_beginning = len(lines)/4
     for line in lines:
         if len(line) > 1:
@@ -230,13 +240,18 @@ def animate(i, ax1):
             except:
                 pass
             zs.append(LIMIT)
+            ls.append(l_bound)
     if len(ys) > MAX_LENGTH:
         ys = ys[len(ys)-MAX_LENGTH:]
         xs = xs[len(ys)-MAX_LENGTH:]
         zs = zs[len(zs)-MAX_LENGTH:]
+        ls = ls[len(ls)-MAX_LENGTH:]
     ax1.clear()
     ax1.plot(ys)
-    ax1.plot(zs)
+    if show_upper_bound == 1:
+        ax1.plot(zs)
+    if show_lower_bound == 1:
+        ax1.plot(ls)
     ax1.set_xlabel("{0} seconds since the start of the run".format(str(time_since_beginning)))
     ax1.set_ylabel("Voltage (volts)")
 
@@ -278,6 +293,11 @@ def graph_data_total_set():
     ax1.set_xlabel("{0} seconds since the start of the run".format(str(time_since_beginning)))
     ax1.set_ylabel("Voltage (volts)")
     plt.show(block = False)
+
+def graph_total_dataset_real_time():
+    response = subprocess.check_output("./graphing/graph_total {0}".format(current_run.db_file_name), shell=True)
+    if response: print response
+    main.after(total_refresh, graph_total_dataset_real_time)
 
 
 def change_threshold():
@@ -323,13 +343,18 @@ def ping():
 
 def check_args():
     '''check the function arguments provided when the software was run'''
-    global LIMIT, current_run, emails
+    global LIMIT, current_run, emails, show_lower_bound, show_upper_bound
     args = parser.parse_args()
     if len(sys.argv) > 4:
         LIMIT = args.threshold
         current_run = newRun(get_current_date())
         current_run.change_run_number(args.rnum)
-        current_run.limit = LIMIT
+        if args.threshold is not None:
+            current_run.limit = LIMIT
+            show_upper_bound = 1
+        if args.lower is not None:
+            current_run.lower_threshold = args.lower
+            show_lower_bound = 1
         current_run.generate_new_file()
         tmp = args.emails
         emails = tmp.split(',')
@@ -386,5 +411,6 @@ elist_button.grid(row=8, column=0)
 main.after(100, check_args)
 # constantly update the voltage database entry window and check for above threshold values
 main.after(2500,update_voltage_db)
+main.after(total_refresh, graph_total_dataset_real_time)
 main.wm_title('ANUBIS: real time low-voltage monitoring system')
 main.mainloop()

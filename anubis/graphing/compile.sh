@@ -1,0 +1,1 @@
+g++ graph_total.c -o graph_total `root-config --cflags --glibs`
