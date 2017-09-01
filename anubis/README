@@ -4,20 +4,29 @@
 # Created by Joseph Farah
 #
 # Written on: [Thursday, August 17th, 2017]
-# Last updated: [Tuesday, August 29th, 2017] by [Joseph Farah]
+# Last updated: [Friday, September 1st, 2017] by [Joseph Farah]
 # Requires several files to run:
 #   * db_loc.txt: contains a single line pointing both ANUBIS and the Matlab script 
 #                 to the correct database  
 #   * speed_run.m: a minimized data collection script, needs to be running while the 
 #                  run is going
+# 	* graphing/: contains the code needed to use ROOT to graph the entire dataset
 #
-# Function arguments: --rnum, --threshold
+# Function arguments: 
 #   * --rnum: the current run number, defaults to "notrun" if none is provided
 #   * --threshold: the maximum voltage allowed before the program proceeds to 
 #                  piss itself
+#	* --lower: the minimum voltage allowed before the program alerts
 #	* --emails: the list of emails, separated by commas
 # 	* --user: the username for the alert system (must be gmail)
 #	* --pass: the password for the alert system account
+#	* --totref: time interal between the total dataset graph refreshes
+# 	* --nographs: NO ARGUMENT, doesn't display all graphs on startup
+#	* --startnow: starts the matlab script automatically and displays graphs
 #
-# Example usage: python anubis.py --rnum 3522 --threshold 1.4e-3 --emails email@email.com,email@cern.ch --user username --pass password
+# Example commands: 
+# 	(1) To begin run 3522 immediately, begin monitoring immediately, display 
+#		graphs, give two emails, wait 5 minutes in between each total graph 
+#		refresh: 
+ 			python anubis.py --rnum 3522 --threshold 1.0 --lower 0.2 --user lppcautomated --pass 42oxford --totref 300000 --startnow
 ######################################################################################

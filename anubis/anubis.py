@@ -4,7 +4,7 @@
 # Created by Joseph Farah
 #
 # Written on: [Thursday, August 17th, 2017]
-# Last updated: [Tuesday, August 29th, 2017] by [Joseph Farah]
+# Last updated: [Friday, September 1st, 2017] by [Joseph Farah]
 # Requires several files to run:
 #   * db_loc.txt: contains a single line pointing both ANUBIS and the Matlab script 
 #                 to the correct database  
@@ -34,6 +34,7 @@ import string
 import time
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
+from matplotlib.ticker import FormatStrFormatter
 import datetime
 import argparse
 import thread
@@ -83,7 +84,7 @@ parser = argparse.ArgumentParser(usage=__doc__, formatter_class=argparse.Argumen
 parser.add_argument("--rnum", default="notrun", help="run number")
 parser.add_argument("--threshold", help="threshold value")
 parser.add_argument("--lower", help="lower threshold limit")
-parser.add_argument("--emails", default="", help="list of emails, separated by commas. example: email@cern.ch,email.cern.ch", required=True)
+parser.add_argument("--emails", default="", help="list of emails, separated by commas. example: email@cern.ch,email.cern.ch")
 parser.add_argument("--user", default="", help="username for alert system", required=True)
 parser.add_argument("--pass", default="",help="password for alert system", required=True )
 parser.add_argument("--totref", default=total_refresh, help="how often the realtime graph of the total dataset refreshes")
@@ -228,6 +229,7 @@ def graph_data_real_time():
     '''call the animation that allows the graph to display real time data'''
     fig = plt.figure()
     ax1 = fig.add_subplot(1,1,1)
+    ax1.yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
     ani = animation.FuncAnimation(fig, animate, interval=125, fargs=(ax1,))
     plt.show(block=True)
 
@@ -397,13 +399,15 @@ def check_args():
         if args.nographs is True:
             show_all_graphs = 0
         current_run.generate_new_file()
-        tmp = args.emails
-        emails = tmp.split(',')
-        get_current_run_info()
+        if args.emails is not None:
+            tmp = args.emails
+            emails = tmp.split(',')
+        else:
+            emails = ['dummy@email.garbage']
         if args.startnow is True:
             thread.start_new_thread(run_matlab_script, ())
-        if show_all_graphs == 1:
-            main.after(5000,graph_data_real_time)
+            if show_all_graphs == 1:
+                main.after(5000,graph_data_real_time)
     else:
         print 'NOT ENOUGH ARGS GIVEN. EMAILS, USER, PASS REQUIRED. EXITING.'
         sys.exit()
