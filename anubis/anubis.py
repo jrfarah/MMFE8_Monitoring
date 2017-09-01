@@ -36,6 +36,8 @@ import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 import datetime
 import argparse
+import thread
+from threading import Timer
 
 # the only module that probably isn't installed default, yagmail
 try:
@@ -60,9 +62,11 @@ valve = ""
 # could be useful in the future for improved time reading
 check_start = 1
 start_time = 0
-check_limit = 0
+check_limit = 1
 show_upper_bound = 0
 show_lower_bound = 0
+show_all_graphs = 1
+start_immediately = 1
 
 # default limit, can be changed either with command line
 # args or by using the GUI
@@ -83,6 +87,8 @@ parser.add_argument("--emails", default="", help="list of emails, separated by c
 parser.add_argument("--user", default="", help="username for alert system", required=True)
 parser.add_argument("--pass", default="",help="password for alert system", required=True )
 parser.add_argument("--totref", default=total_refresh, help="how often the realtime graph of the total dataset refreshes")
+parser.add_argument("--nographs", action='store_true')
+parser.add_argument("--startnow", action='store_true')
 
 # class to allow user input for any variable
 class element_input(object):
@@ -108,6 +114,7 @@ class newRun(object):
         self.db_file_name = ""
         self.limit = limit
         self.lower_threshold = limit/2
+        self.alerts_list = []
 
     def generate_new_file(self):
         global database_file
@@ -123,6 +130,9 @@ class newRun(object):
 
     def change_run_number(self, new_rnum):
         self.run_number = new_rnum
+
+    def add_alert(self, line_num):
+        self.alerts_list.append(line_num)
 
 # defining the tkinter window
 main = Tk()
@@ -145,9 +155,27 @@ def tail(f, n):
 
     if check_limit == 1:
         for line in lines:
-            y, x = line.split(',')
+            try:
+                y, x = line.split(',')
+            except ValueError:
+                continue
             if float(y) > float(limit):
-                send_alert(time.strftime("%d/%m/%Y"),time.strftime("%I:%M:%S"), y,limit, emails, uname, passwd)
+                with open(current_run.db_file_name, "r") as f:
+                    data = f.readlines()
+                try:
+                    index = data.index(line+"\n")
+                except ValueError:
+                    continue
+
+                if data.index(line+"\n") in current_run.alerts_list:
+                    # print 'I found a value that exceeds a threshold, but I already notified you about it.'
+                    continue
+                else:
+                    # send_alert(time.strftime("%d/%m/%Y"),time.strftime("%I:%M:%S"), y,limit, emails, uname, passwd)
+                    current_run.add_alert(data.index(str(line+"\n")))
+                    # print current_run.alerts_list
+                    # print "VOLTAGE ABOUT THRESHOLD FOUND! Sending email now."
+
     return result
 
 def send_alert(date, time, voltage, threshold, email_list, username, password):
@@ -162,10 +190,10 @@ def update_voltage_db():
        matlab program is actually receiving any data'''
     global voltage_db_view
     voltage_db_view.delete('1.0', END)
-    try:
-        voltage_db_view.insert(INSERT, tail(database_file,'10'))
-    except:
-        print 'problem with tailing file'
+    # try:
+    voltage_db_view.insert(INSERT, tail(database_file,'100'))
+    # except:
+    #     print 'problem with tailing file'
     voltage_db_view.see(END)
     main.after(2500, update_voltage_db)
 
@@ -180,7 +208,7 @@ def new_run_function():
     current_run.limit = valve
     print current_run.limit
 
-def get_current_run_info():
+def get_current_run_info(): 
     '''display all current run object attributes, in terminal and in GUI'''
     global current_run
     print current_run.date
@@ -188,6 +216,7 @@ def get_current_run_info():
     print current_run.db_file_name
     print current_run.limit
     print current_run.lower_threshold
+    print total_refresh
     tkmb.showinfo("Current object info", "{0}\n{1}\n{2}\n".format(current_run.date, current_run.run_number, current_run.db_file_name))
 
 def generate_new_empty_database():
@@ -199,7 +228,7 @@ def graph_data_real_time():
     '''call the animation that allows the graph to display real time data'''
     fig = plt.figure()
     ax1 = fig.add_subplot(1,1,1)
-    ani = animation.FuncAnimation(fig, animate, interval=500, fargs=(ax1,))
+    ani = animation.FuncAnimation(fig, animate, interval=125, fargs=(ax1,))
     plt.show(block=True)
 
 def animate(i, ax1):
@@ -232,6 +261,8 @@ def animate(i, ax1):
     ls = []
     time_since_beginning = len(lines)/4
     for line in lines:
+        # if line == lines[-1]:
+        #     break
         if len(line) > 1:
             try:
                 y, x = line.split(',')
@@ -282,7 +313,6 @@ def graph_data_total_set():
                 ys.append(float(y))
                 # working on this part
                 xs.append((lines.index(line)/4.0)/86400.0)
-                # print float(y), float(time_since_beginning)
             except:
                 pass
             zs.append(LIMIT)
@@ -295,23 +325,30 @@ def graph_data_total_set():
     plt.show(block = False)
 
 def graph_total_dataset_real_time():
-    response = subprocess.check_output("./graphing/graph_total {0}".format(current_run.db_file_name), shell=True)
-    if response: print response
+    try:
+        response = subprocess.check_output("./graphing/graph_total ../{0}".format(current_run.db_file_name), shell=True)
+        if response: print response
+    except:
+        print "real_time graphing didn't work"
+    print 'Working (sort of)'
     main.after(total_refresh, graph_total_dataset_real_time)
 
 
 def change_threshold():
     '''change the limit attribute of the current run'''
     global current_run
-    element_input(main, "Please input the new voltage threshold.")
+    element_input(main, "Please input the new UPPER voltage threshold.")
     current_run.limit = valve
     print current_run.limit
+    element_input(main, "Please input the new LOWER voltage threshold.")
+    current_run.lower_threshold = valve
+    print current_run.lower_threshold
 
 
 def format_x(x_val):
     '''make the date graphable, instead of human readable'''
     global start_time
-    x_s = x_val[1:-2]
+    x_s = x_val[1:-1]
     x_s = x_s.split(' ')
     for element in x_s:
         x_s[x_s.index(element)] = int(float(element))
@@ -343,7 +380,7 @@ def ping():
 
 def check_args():
     '''check the function arguments provided when the software was run'''
-    global LIMIT, current_run, emails, show_lower_bound, show_upper_bound
+    global LIMIT, current_run, emails, show_lower_bound, show_upper_bound, total_refresh, show_all_graphs
     args = parser.parse_args()
     if len(sys.argv) > 4:
         LIMIT = args.threshold
@@ -355,14 +392,26 @@ def check_args():
         if args.lower is not None:
             current_run.lower_threshold = args.lower
             show_lower_bound = 1
+        if args.totref is not None:
+            total_refresh = args.totref
+        if args.nographs is True:
+            show_all_graphs = 0
         current_run.generate_new_file()
         tmp = args.emails
         emails = tmp.split(',')
         get_current_run_info()
+        if args.startnow is True:
+            thread.start_new_thread(run_matlab_script, ())
+        if show_all_graphs == 1:
+            # t = Timer(5.0, graph_data_real_time)
+            # t.start()
+            main.after(5000,graph_data_real_time)
     else:
         print 'NOT ENOUGH ARGS GIVEN. EMAILS, USER, PASS REQUIRED. EXITING.'
         sys.exit()
 
+def run_matlab_script():
+    subprocess.check_output("nohup python fake_data_generator.py &", shell=True)
 
 # GUI button and entry definitions, add to here if you want to implement functions as buttons
 # database dataset live view entry controls
@@ -414,3 +463,4 @@ main.after(2500,update_voltage_db)
 main.after(total_refresh, graph_total_dataset_real_time)
 main.wm_title('ANUBIS: real time low-voltage monitoring system')
 main.mainloop()
+print 'Exiting'
