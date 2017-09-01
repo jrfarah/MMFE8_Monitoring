@@ -159,7 +159,7 @@ def tail(f, n):
                 y, x = line.split(',')
             except ValueError:
                 continue
-            if float(y) > float(limit):
+            if float(y) > float(limit) or float(y) < float(current_run.lower_threshold):
                 with open(current_run.db_file_name, "r") as f:
                     data = f.readlines()
                 try:
@@ -181,7 +181,7 @@ def tail(f, n):
 def send_alert(date, time, voltage, threshold, email_list, username, password):
     '''email-sending protocol, simplified using yagmail'''
     yag = yagmail.SMTP(username, password)
-    message = 'ALERT: ANUBIS recorded a voltage on {0} at {1} on [whatever circuit] that exceeded the threshold of {2} V. The recorded voltage was {3} V'.format(str(date), str(time), str(threshold), str(voltage))
+    message = 'ALERT: ANUBIS recorded a voltage on {0} at {1} on [whatever circuit] that was not within the set thresholds of {2} V and {4} V. The recorded voltage was {3} V'.format(str(date), str(time), str(threshold), str(voltage), str(current_run.lower_threshold))
     contents = [message]
     yag.send(email_list, 'Test alert', contents)
 
@@ -403,8 +403,6 @@ def check_args():
         if args.startnow is True:
             thread.start_new_thread(run_matlab_script, ())
         if show_all_graphs == 1:
-            # t = Timer(5.0, graph_data_real_time)
-            # t.start()
             main.after(5000,graph_data_real_time)
     else:
         print 'NOT ENOUGH ARGS GIVEN. EMAILS, USER, PASS REQUIRED. EXITING.'
