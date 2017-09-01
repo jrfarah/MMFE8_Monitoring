@@ -28,5 +28,5 @@
 # 	(1) To begin run 3522 immediately, begin monitoring immediately, display 
 #		graphs, give two emails, wait 5 minutes in between each total graph 
 #		refresh: 
- 			python anubis.py --rnum 3522 --threshold 1.0 --lower 0.2 --user lppcautomated --pass 42oxford --totref 300000 --startnow
+# python anubis.py --rnum 3522 --threshold 1.0 --lower 0.2 --user lppcautomated --pass 42oxford --totref 300000 --startnow
 ######################################################################################
