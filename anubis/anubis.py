@@ -10,13 +10,30 @@
 #                 to the correct database  
 #   * speed_run.m: a minimized data collection script, needs to be running while the 
 #                  run is going
+#   * graphing/: contains the code needed to use ROOT to graph the entire dataset
 #
-# Function arguments: --rnum, --threshold
+# Function arguments: 
 #   * --rnum: the current run number, defaults to "notrun" if none is provided
 #   * --threshold: the maximum voltage allowed before the program proceeds to 
 #                  piss itself
+#   * --lower: the minimum voltage allowed before the program alerts
+#   * --emails: the list of emails, separated by commas
+#   * --user: the username for the alert system (must be gmail)
+#   * --pass: the password for the alert system account
+#   * --totref: time interal between the total dataset graph refreshes
+#   * --nographs: NO ARGUMENT, doesn't display all graphs on startup
+#   * --startnow: starts the matlab script automatically and displays graphs
 #
-# Example usage: python anubis.py --rnum 3522 --threshold 1.4e-3
+# Example commands: 
+#   (1) To begin run 3522 immediately, begin monitoring immediately, display 
+#       graphs, give two emails, provide upper and lower thresholds, and wait 5 minutes in between each total graph 
+#       refresh: 
+# python anubis.py --rnum 3522 --threshold 1.0 --lower 0.2 --user lppcautomated --pass 42oxford --totref 300000 --startnow --emails email@email.ch,another@email.ch
+#
+#   (2) To run the program and do everything from the GUI:
+# python anubis.py
+#
+# IMPORTANT: DO NOT RUN THE MATLAB SCRIPT IN ANY WAY BEFORE A DATABASE HAS BEEN GENERATED FOR THE RUN.  
 ######################################################################################
 
 
@@ -85,8 +102,8 @@ parser.add_argument("--rnum", default="notrun", help="run number")
 parser.add_argument("--threshold", help="threshold value")
 parser.add_argument("--lower", help="lower threshold limit")
 parser.add_argument("--emails", default="", help="list of emails, separated by commas. example: email@cern.ch,email.cern.ch")
-parser.add_argument("--user", default="", help="username for alert system", required=True)
-parser.add_argument("--pass", default="",help="password for alert system", required=True )
+parser.add_argument("--user", default="", help="username for alert system")
+parser.add_argument("--pass", default="",help="password for alert system")
 parser.add_argument("--totref", default=total_refresh, help="how often the realtime graph of the total dataset refreshes")
 parser.add_argument("--nographs", action='store_true')
 parser.add_argument("--startnow", action='store_true')
@@ -147,37 +164,40 @@ def get_current_date():
 def tail(f, n):
     '''grabs the last n lines from any file, formats it, and checks to see 
         if the voltage is more than the specified threshold'''
-    result = subprocess.check_output("tail -n "+n+" "+f, shell=True)
-    lines = result.splitlines()
     try:
-        limit = current_run.limit
-    except:
-        limit = LIMIT
+        result = subprocess.check_output("tail -n "+n+" "+f, shell=True)
+        lines = result.splitlines()
+        try:
+            limit = current_run.limit
+        except:
+            limit = LIMIT
 
-    if check_limit == 1:
-        for line in lines:
-            try:
-                y, x = line.split(',')
-            except ValueError:
-                continue
-            if float(y) > float(limit) or float(y) < float(current_run.lower_threshold):
-                with open(current_run.db_file_name, "r") as f:
-                    data = f.readlines()
+        if check_limit == 1:
+            for line in lines:
                 try:
-                    index = data.index(line+"\n")
+                    y, x = line.split(',')
                 except ValueError:
                     continue
+                if float(y) > float(limit) or float(y) < float(current_run.lower_threshold):
+                    with open(current_run.db_file_name, "r") as f:
+                        data = f.readlines()
+                    try:
+                        index = data.index(line+"\n")
+                    except ValueError:
+                        continue
 
-                if data.index(line+"\n") in current_run.alerts_list:
-                    # print 'I found a value that exceeds a threshold, but I already notified you about it.'
-                    continue
-                else:
-                    # send_alert(time.strftime("%d/%m/%Y"),time.strftime("%I:%M:%S"), y,limit, emails, uname, passwd)
-                    current_run.add_alert(data.index(str(line+"\n")))
-                    # print current_run.alerts_list
-                    # print "VOLTAGE ABOUT THRESHOLD FOUND! Sending email now."
+                    if data.index(line+"\n") in current_run.alerts_list:
+                        # print 'I found a value that exceeds a threshold, but I already notified you about it.'
+                        continue
+                    else:
+                        # send_alert(time.strftime("%d/%m/%Y"),time.strftime("%I:%M:%S"), y,limit, emails, uname, passwd)
+                        current_run.add_alert(data.index(str(line+"\n")))
+                        # print current_run.alerts_list
+                        # print "VOLTAGE ABOUT THRESHOLD FOUND! Sending email now."
 
-    return result
+        return result
+    except:
+        return "PROBLEM LOADING DATABASE, CARRY ON"
 
 def send_alert(date, time, voltage, threshold, email_list, username, password):
     '''email-sending protocol, simplified using yagmail'''
@@ -408,9 +428,6 @@ def check_args():
             thread.start_new_thread(run_matlab_script, ())
             if show_all_graphs == 1:
                 main.after(5000,graph_data_real_time)
-    else:
-        print 'NOT ENOUGH ARGS GIVEN. EMAILS, USER, PASS REQUIRED. EXITING.'
-        sys.exit()
 
 def run_matlab_script():
     subprocess.check_output("nohup python fake_data_generator.py &", shell=True)
@@ -418,7 +435,7 @@ def run_matlab_script():
 # GUI button and entry definitions, add to here if you want to implement functions as buttons
 # database dataset live view entry controls
 voltage_db_view = Text(main, bg = "white", fg = "black", insertbackground = "white",tabs = ("1c"))
-voltage_db_view.grid(row = 0, column = 1, rowspan=9)
+voltage_db_view.grid(row = 0, column = 1, rowspan=10)
 
 # button to generate new runs, creates a newRun object
 new_run_button = Button(main, text="Start New Run", command=new_run_function)
@@ -455,6 +472,10 @@ ping_button.grid(row=7, column=0)
 # see who's on the email list
 elist_button = Button(main, text="Who are emails being sent to?", command=view_email_list)
 elist_button.grid(row=8, column=0)
+
+# button to start the MATLAB script
+script_run_button = Button(main, text="Start matlab script", command=lambda:thread.start_new_thread(run_matlab_script, ()))
+script_run_button.grid(row=9,column=0)
 
 
 

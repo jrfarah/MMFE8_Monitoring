@@ -26,7 +26,12 @@
 #
 # Example commands: 
 # 	(1) To begin run 3522 immediately, begin monitoring immediately, display 
-#		graphs, give two emails, wait 5 minutes in between each total graph 
+#		graphs, give two emails, provide upper and lower thresholds, and wait 5 minutes in between each total graph 
 #		refresh: 
-# python anubis.py --rnum 3522 --threshold 1.0 --lower 0.2 --user lppcautomated --pass 42oxford --totref 300000 --startnow
+# python anubis.py --rnum 3522 --threshold 1.0 --lower 0.2 --user lppcautomated --pass 42oxford --totref 300000 --startnow --emails email@email.ch,another@email.ch
+#
+#	(2) To run the program and do everything from the GUI:
+# python anubis.py
+#
+# IMPORTANT: DO NOT RUN THE MATLAB SCRIPT IN ANY WAY BEFORE A DATABASE HAS BEEN GENERATED FOR THE RUN.
 ######################################################################################
