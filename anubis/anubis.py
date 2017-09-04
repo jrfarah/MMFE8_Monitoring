@@ -63,7 +63,6 @@ try:
 except: 
     print 'WARNING: CANNOT IMPORT YAGMAIL, CANNOT NOTIFY OF THRESHOLD VIOLATIONS'
     sys.exit()
-# lppc automated email, lppcautomated@gmail.com, 42oxford
 
 # for defaults, grab the most recently used database file
 with open('db_loc.txt') as f:
