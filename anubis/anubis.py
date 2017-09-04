@@ -95,6 +95,11 @@ emails = []
 uname = ""
 passwd = ""
 
+# path to matlab exe (CHANGE THIS DEPENDING ON WHERE YOU INSTALLED MATLAB)
+# ideally should remain constant throughout the run
+MATLAB_PATH = "/mnt/c/Program\ Files/MATLAB/R2017a/bin/matlab.exe"
+matlab_command = MATLAB_PATH + " -nodisplay -nosplash -nodesktop -r run_test"
+
 # command line argument stuff
 parser = argparse.ArgumentParser(usage=__doc__, formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 parser.add_argument("--rnum", default="notrun", help="run number")
@@ -429,7 +434,9 @@ def check_args():
                 main.after(5000,graph_data_real_time)
 
 def run_matlab_script():
-    subprocess.check_output("nohup python fake_data_generator.py &", shell=True)
+    # uncomment this for debugging purposes
+    # subprocess.check_output("nohup python fake_data_generator.py &", shell=True)
+    subprocess.check_output(matlab_command, shell=True)
 
 # GUI button and entry definitions, add to here if you want to implement functions as buttons
 # database dataset live view entry controls
