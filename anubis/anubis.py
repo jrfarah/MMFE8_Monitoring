@@ -98,7 +98,7 @@ passwd = ""
 # path to matlab exe (CHANGE THIS DEPENDING ON WHERE YOU INSTALLED MATLAB)
 # ideally should remain constant throughout the run
 MATLAB_PATH = "/mnt/c/Program\ Files/MATLAB/R2017a/bin/matlab.exe"
-matlab_command = MATLAB_PATH + " -nodisplay -nosplash -nodesktop -r run_test"
+matlab_command = MATLAB_PATH + " -nodisplay -nosplash -nodesktop -r speed_run"
 
 # command line argument stuff
 parser = argparse.ArgumentParser(usage=__doc__, formatter_class=argparse.ArgumentDefaultsHelpFormatter)
@@ -111,6 +111,7 @@ parser.add_argument("--pass", default="",help="password for alert system")
 parser.add_argument("--totref", default=total_refresh, help="how often the realtime graph of the total dataset refreshes")
 parser.add_argument("--nographs", action='store_true')
 parser.add_argument("--startnow", action='store_true')
+parser.add_argument("--matlabpath", default = MATLAB_PATH, help="path to the matlab executable")
 
 # class to allow user input for any variable
 class element_input(object):
@@ -404,9 +405,14 @@ def ping():
     response = subprocess.check_output("ping -c {0} {1}".format(num_ping, ip_ping), shell=True)
     tkmb.showinfo("Result", response)
 
+def run_matlab_script():
+    # uncomment this for debugging purposes
+    # subprocess.check_output("nohup python fake_data_generator.py &", shell=True)
+    subprocess.check_output(matlab_command, shell=True)
+
 def check_args():
     '''check the function arguments provided when the software was run'''
-    global LIMIT, current_run, emails, show_lower_bound, show_upper_bound, total_refresh, show_all_graphs
+    global LIMIT, current_run, emails, show_lower_bound, show_upper_bound, total_refresh, show_all_graphs, MATLAB_PATH
     args = parser.parse_args()
     if len(sys.argv) > 4:
         LIMIT = args.threshold
@@ -428,15 +434,12 @@ def check_args():
             emails = tmp.split(',')
         else:
             emails = ['dummy@email.garbage']
+        MATLAB_PATH = args.matlabpath
         if args.startnow is True:
             thread.start_new_thread(run_matlab_script, ())
             if show_all_graphs == 1:
                 main.after(5000,graph_data_real_time)
 
-def run_matlab_script():
-    # uncomment this for debugging purposes
-    # subprocess.check_output("nohup python fake_data_generator.py &", shell=True)
-    subprocess.check_output(matlab_command, shell=True)
 
 # GUI button and entry definitions, add to here if you want to implement functions as buttons
 # database dataset live view entry controls
