@@ -4,7 +4,7 @@
 # Created by Joseph Farah
 #
 # Written on: [Thursday, August 17th, 2017]
-# Last updated: [Friday, September 1st, 2017] by [Joseph Farah]
+# Last updated: [Monday, September 4th, 2017] by [Joseph Farah]
 # Requires several files to run:
 #   * db_loc.txt: contains a single line pointing both ANUBIS and the Matlab script 
 #                 to the correct database  
@@ -407,8 +407,8 @@ def ping():
 
 def run_matlab_script():
     # uncomment this for debugging purposes
-    # subprocess.check_output("nohup python fake_data_generator.py &", shell=True)
-    subprocess.check_output(matlab_command, shell=True)
+    subprocess.check_output("nohup python fake_data_generator.py &", shell=True)
+    # subprocess.check_output(matlab_command, shell=True)
 
 def check_args():
     '''check the function arguments provided when the software was run'''
