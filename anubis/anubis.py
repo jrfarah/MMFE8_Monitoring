@@ -13,16 +13,16 @@
 #   * graphing/: contains the code needed to use ROOT to graph the entire dataset
 #
 # Function arguments: 
-#   * --rnum: the current run number, defaults to "notrun" if none is provided
-#   * --threshold: the maximum voltage allowed before the program proceeds to 
+#   * \item--rnum: the current run number, defaults to "notrun" if none is provided
+#   * \item--threshold: the maximum voltage allowed before the program proceeds to 
 #                  piss itself
-#   * --lower: the minimum voltage allowed before the program alerts
-#   * --emails: the list of emails, separated by commas
-#   * --user: the username for the alert system (must be gmail)
-#   * --pass: the password for the alert system account
-#   * --totref: time interal between the total dataset graph refreshes
-#   * --nographs: NO ARGUMENT, doesn't display all graphs on startup
-#   * --startnow: starts the matlab script automatically and displays graphs
+#   * \item--lower: the minimum voltage allowed before the program alerts
+#   * \item--emails: the list of emails, separated by commas
+#   * \item--user: the username for the alert system (must be gmail)
+#   * \item--pass: the password for the alert system account
+#   * \item--totref: time interal between the total dataset graph refreshes
+#   * \item--nographs: NO ARGUMENT, doesn't display all graphs on startup
+#   * \item--startnow: starts the matlab script automatically and displays graphs
 #
 # Example commands: 
 #   (1) To begin run 3522 immediately, begin monitoring immediately, display 
